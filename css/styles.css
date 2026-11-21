@@ -49,6 +49,8 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: v
 .sub { color: var(--muted); margin: 2px 0 0; font-size: 15px; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; cursor: pointer; }
+/* iOS zooms the page when focusing a field under 16px (and stays zoomed): never below 16 */
+input, select, textarea { font-size: 16px !important; }
 button:disabled { opacity: .55; cursor: default; }
 .caricamento, .grande { font-size: 56px; text-align: center; margin: 18vh 0 8px; }
 
