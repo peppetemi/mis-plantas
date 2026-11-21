@@ -35,6 +35,15 @@ Notes:
    ```
    This creates `icons/<name>.webp` (512px, trimmed, transparent background). If an icon has a white background with "holes" (e.g. Monstera Monkey), process it separately with `--buchi` (not on plants with white flowers).
 
+   Commands used for the current set (white backgrounds from the generator):
+   ```bash
+   python3 scripts/prepara_icone.py icons/originali --buchi
+   python3 scripts/prepara_icone.py icons/originali/spatafillo.png --tolleranza 10
+   python3 scripts/prepara_icone.py icons/originali/calla.png --tolleranza 10 \
+     --punti 500,375 600,425 450,450 500,400 550,375 443,425 500,425 425,450 450,425 550,400 600,450 503,450
+   ```
+   (White flowers: `--buchi` would eat them, so for Calla the gaps between the stems are removed by pointing at them with `--punti`.)
+
 ## 3. Publishing (GitHub Pages)
 Coming in the next step: git repo → GitHub → Pages. Then open the address on your phone and "Add to Home Screen".
 
