@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- App icon: water drop with a leaf. Rendered to PNG with scripts (see SETUP.md). -->
+  <rect width="1024" height="1024" fill="#F3EEE3"/>
+  <path d="M512 200 C512 200 262 468 262 612 A250 250 0 0 0 762 612 C762 468 512 200 512 200 Z" fill="#A9C9A2"/>
+  <path d="M404 748 C378 600 478 476 646 444 C668 602 578 726 404 748 Z" fill="#F3EEE3"/>
+  <path d="M424 728 Q540 610 632 462" fill="none" stroke="#A9C9A2" stroke-width="15" stroke-linecap="round"/>
+</svg>

@@ -44,6 +44,10 @@ Notes:
    ```
    (White flowers: `--buchi` would eat them, so for Calla the gaps between the stems are removed by pointing at them with `--punti`.)
 
+## App icon
+Source: `img/app-icon.svg` (and `img/app-icon-maskable.svg`, smaller for Android's round crop). The PNGs in `img/` (512, 192, 180 apple-touch, 512 maskable) are generated from these, e.g. on a Mac with `qlmanage -t -s 1024 -o /tmp img/app-icon.svg` and then resized.
+On iPhone, a new icon only shows after removing the app from the Home Screen and adding it again.
+
 ## 3. Publishing (GitHub Pages)
 Coming in the next step: git repo → GitHub → Pages. Then open the address on your phone and "Add to Home Screen".
 
