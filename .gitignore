@@ -1,0 +1,13 @@
+# personal data from the sheet (the app is public on GitHub Pages)
+supabase/seed.sql
+dev/
+*.xlsx
+
+# original icons (only the processed .webp files go in the app)
+icons/originali/
+
+.DS_Store
+__pycache__/
+
+# local tools
+.claude/
