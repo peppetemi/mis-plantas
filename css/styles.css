@@ -80,8 +80,9 @@ button:disabled { opacity: .55; cursor: default; }
 .card:active { transform: scale(.99); }
 .card-body { flex: 1; min-width: 0; }
 .nome { font-weight: 650; font-size: 17px; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
-.meta { color: var(--muted); font-size: 14px; margin-top: 3px; }
+.meta { color: var(--muted); font-size: 14px; margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .meta span { white-space: nowrap; }
+.meta .pill { padding: 3px 9px; }
 .pill { flex: none; font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 999px; white-space: nowrap; }
 .pill.rosso { color: var(--rosso); background: var(--rosso-bg); }
 .pill.arancio { color: var(--arancio); background: var(--arancio-bg); }
@@ -122,6 +123,14 @@ button:disabled { opacity: .55; cursor: default; }
 .freq thead .ora { color: var(--accent); }
 .nota { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
 .conta { color: var(--muted); font-weight: 500; margin-left: 4px; }
+/* collapsible diary: the whole header row is tappable */
+.diario summary { list-style: none; display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin: -14px -16px; padding: 14px 16px; }
+.diario summary::-webkit-details-marker { display: none; }
+.diario summary h2 { margin: 0; }
+.diario .freccia { font-size: 22px; line-height: 1; color: var(--muted); transition: transform .2s; }
+.diario[open] .freccia { transform: rotate(90deg); }
+.diario[open] summary { margin-bottom: 0; padding-bottom: 10px; }
+.benvenuto { margin: -20px 0 24px; }
 .storico { list-style: none; margin: 0; padding: 0; }
 .storico li { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); }
 .storico li:first-child { border-top: 0; }

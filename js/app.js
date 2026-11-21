@@ -18,6 +18,7 @@ const state = {
   errore: null,
   login: { email: '' },
   storicoCompleto: false,
+  storicoAperto: false,
   iconaScelta: 'generica',
 };
 
@@ -45,12 +46,12 @@ function quandoLungo(n) {
 const ogni = (x) => (x == null ? '—' : `ogni ${Math.round(x)} gg`);
 
 function stato(s) {
-  if (s.giorniAcqua == null) return 'Mai annaffiata';
+  if (s.giorniAcqua == null) return 'Primo sorso?';
   const m = s.mancano;
-  if (s.urgenza >= 1) return m < 0 ? `In ritardo di ${-m} gg` : 'Oggi';
-  if (m <= 0) return 'Oggi';
-  if (m === 1) return 'Domani';
-  return `Tra ${m} gg`;
+  if (s.urgenza >= 1) return m < 0 ? `Ha sete da ${-m} gg` : 'Ha sete oggi';
+  if (m <= 0) return 'Ha sete oggi';
+  if (m === 1) return 'Sete domani';
+  return livello(s.urgenza) === 'arancio' ? `Sete tra ${m} gg` : `Felice per ${m} gg`;
 }
 
 const fmtData = new Intl.DateTimeFormat('it-IT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
@@ -58,7 +59,7 @@ const dataLeggibile = (iso) => fmtData.format(new Date(iso + 'T12:00:00'));
 
 function autoreBreve(a) {
   if (!a) return '';
-  if (a === 'import') return 'storico';
+  if (a === 'import') return 'dal foglio';
   return a.split('@')[0];
 }
 
@@ -78,7 +79,7 @@ function toast(msg, azione) {
 
 function errore(e) {
   console.error(e);
-  toast('Errore: ' + (e?.message || e));
+  toast('Ops: ' + (e?.message || e));
 }
 
 async function ricarica() {
@@ -111,7 +112,7 @@ function renderErrore() {
   $app.innerHTML = `
     <section class="vuoto">
       <p class="grande">🥀</p>
-      <p>Non riesco a caricare i dati.</p>
+      <p>Non riesco a raggiungere le piante.</p>
       <p class="sub">${esc(state.errore)}</p>
       <button class="btn" data-azione="riprova">Riprova</button>
       <button class="link" data-azione="esci-subito">Esci</button>
@@ -123,6 +124,7 @@ function renderLogin() {
     <section class="login">
       <p class="grande">🪴</p>
       <h1>Le mie piante</h1>
+      <p class="sub benvenuto">Ciao! Loro ti aspettano 🌿</p>
       <form id="form-login">
         <label>Email<input type="email" name="email" required autocomplete="username" value="${esc(state.login.email)}"></label>
         <label>Password<input type="password" name="password" required autocomplete="current-password"></label>
@@ -145,7 +147,13 @@ function renderHome() {
       <div>
         <h1>Le mie piante</h1>
         <p class="sub">${
-          attive.length === 0 ? 'Aggiungi la tua prima pianta' : daFare ? `${daFare} da annaffiare` : 'Tutte a posto 🌿'
+          attive.length === 0
+            ? 'Ancora nessuna pianta: adottane una 🌱'
+            : daFare === 1
+              ? '1 pianta ha sete 💧'
+              : daFare
+                ? `${daFare} piante hanno sete 💧`
+                : 'Tutte dissetate 🌿'
         }${DEMO ? ' · <b>demo</b>' : ''}</p>
       </div>
       <button class="text-btn" data-azione="esci">${DEMO ? 'Reset demo' : 'Esci'}</button>
@@ -153,11 +161,11 @@ function renderHome() {
     <ul class="lista">${attive.map(card).join('')}</ul>
     ${
       archiviate.length
-        ? `<details class="archivio"><summary>Archiviate (${archiviate.length})</summary>
+        ? `<details class="archivio"><summary>Messe da parte (${archiviate.length})</summary>
              <ul class="lista">${archiviate.map(card).join('')}</ul></details>`
         : ''
     }
-    <a class="fab" href="#/nuova">＋ Aggiungi pianta</a>`;
+    <a class="fab" href="#/nuova">＋ Adotta una pianta</a>`;
 }
 
 function card({ p, s }) {
@@ -167,9 +175,11 @@ function card({ p, s }) {
       ${iconaHTML(p.icona, 56)}
       <div class="card-body">
         <div class="nome">${esc(p.nome)}</div>
-        <div class="meta"><span>💧 ${quando(s.giorniAcqua)}</span> · <span>${ogni(s.mediaCorrente)}</span></div>
+        <div class="meta">
+          ${p.archiviata ? '' : `<span class="pill ${lv}">${stato(s)}</span>`}
+          <span>💧 ${quando(s.giorniAcqua)}</span>
+        </div>
       </div>
-      ${p.archiviata ? '' : `<span class="pill ${lv}">${stato(s)}</span>`}
     </a></li>`;
 }
 
@@ -194,29 +204,29 @@ function renderPianta(id) {
       <h1>${esc(p.nome)}</h1>
       ${
         p.archiviata
-          ? '<span class="pill grigio">Archiviata</span>'
+          ? '<span class="pill grigio">Messa da parte</span>'
           : `<span class="pill ${livello(s.urgenza)}">${stato(s)}</span>`
       }
     </section>
 
     <section class="azioni">
-      <label class="data">Data <input type="date" id="data" value="${oggi}" max="${oggi}"></label>
+      <label class="data">Quando? <input type="date" id="data" value="${oggi}" max="${oggi}"></label>
       <div class="bottoni">
         <button class="big acqua" data-log="acqua" data-id="${p.id}">💧 Annaffia</button>
         <button class="big concime" data-log="acqua,concime" data-id="${p.id}">🌱 Concima</button>
       </div>
-      <button class="link piccolo" data-log="rinvaso" data-id="${p.id}">🪴 Segna rinvaso</button>
+      <button class="link piccolo" data-log="rinvaso" data-id="${p.id}">🪴 Ha un vaso nuovo</button>
     </section>
 
     <section class="box">
-      <h2>Ultime cure</h2>
-      <div class="riga"><span>💧 Annaffiatura</span><b>${quando(s.giorniAcqua)}</b></div>
-      <div class="riga"><span>🌱 Concimazione</span><b>${quando(s.giorniConcime)}</b></div>
-      ${s.giorniRinvaso != null ? `<div class="riga"><span>🪴 Rinvaso</span><b>${quandoLungo(s.giorniRinvaso)}</b></div>` : ''}
+      <h2>Ultime coccole</h2>
+      <div class="riga"><span>💧 Acqua</span><b>${quando(s.giorniAcqua)}</b></div>
+      <div class="riga"><span>🌱 Concime</span><b>${quando(s.giorniConcime)}</b></div>
+      ${s.giorniRinvaso != null ? `<div class="riga"><span>🪴 Vaso nuovo</span><b>${quandoLungo(s.giorniRinvaso)}</b></div>` : ''}
     </section>
 
     <section class="box">
-      <h2>Frequenza media</h2>
+      <h2>Quanto spesso</h2>
       <table class="freq">
         <thead><tr><th></th><th${ora('estate')}>☀️ Estate</th><th${ora('inverno')}>❄️ Inverno</th></tr></thead>
         <tbody>
@@ -224,11 +234,11 @@ function renderPianta(id) {
           <tr><th>🌱 Concime</th><td${ora('estate')}>${ogni(s.mediaConcime.estate)}</td><td${ora('inverno')}>${ogni(s.mediaConcime.inverno)}</td></tr>
         </tbody>
       </table>
-      <p class="nota">Estate: apr–set · Inverno: ott–mar</p>
+      <p class="nota">Estate da aprile a settembre, inverno da ottobre a marzo</p>
     </section>
 
-    <section class="box">
-      <h2>Storico <span class="conta">${ev.length}</span></h2>
+    <details class="box diario"${state.storicoAperto ? ' open' : ''}>
+      <summary><h2>Diario <span class="conta">${ev.length}</span></h2><span class="freccia" aria-hidden="true">›</span></summary>
       ${
         ev.length
           ? `<ul class="storico">${visibili
@@ -242,10 +252,10 @@ function renderPianta(id) {
             </li>`
               )
               .join('')}</ul>
-             ${ev.length > visibili.length ? `<button class="link" data-azione="storico-completo">Mostra tutto (${ev.length})</button>` : ''}`
-          : '<p class="sub">Ancora nessuna cura registrata.</p>'
+             ${ev.length > visibili.length ? `<button class="link" data-azione="storico-completo">Vedi tutto (${ev.length})</button>` : ''}`
+          : '<p class="sub">Il diario è ancora vuoto: si parte dal primo sorso 💧</p>'
       }
-    </section>`;
+    </details>`;
 }
 
 function grigliaIcone(selezionata) {
@@ -261,14 +271,14 @@ function renderNuova() {
   $app.innerHTML = `
     <header class="top">
       <a class="icon-btn" href="#/" aria-label="Indietro">‹</a>
-      <h1 class="titolo">Nuova pianta</h1>
+      <h1 class="titolo">Nuova arrivata</h1>
       <span class="icon-btn vuoto"></span>
     </header>
     <form id="form-nuova" class="form">
-      <label>Nome<input name="nome" required maxlength="60" placeholder="es. Monstera salotto" autocomplete="off"></label>
-      <p class="etichetta">Icona</p>
+      <label>Come si chiama?<input name="nome" required maxlength="60" placeholder="es. Monstera del salotto" autocomplete="off"></label>
+      <p class="etichetta">Scegli la sua immagine</p>
       ${grigliaIcone(state.iconaScelta)}
-      <button class="btn sticky" type="submit">Salva</button>
+      <button class="btn sticky" type="submit">Benvenuta a casa 🌱</button>
     </form>`;
 }
 
@@ -278,7 +288,7 @@ function renderScegliIcona(id) {
   $app.innerHTML = `
     <header class="top">
       <a class="icon-btn" href="#/pianta/${p.id}" aria-label="Indietro">‹</a>
-      <h1 class="titolo">Icona di ${esc(p.nome)}</h1>
+      <h1 class="titolo">Un'immagine per ${esc(p.nome)}</h1>
       <span class="icon-btn vuoto"></span>
     </header>
     <div data-cambia-icona="${p.id}">${grigliaIcone(p.icona)}</div>`;
@@ -290,7 +300,7 @@ async function registra(btn) {
   const piantaId = btn.dataset.id;
   const azioni = btn.dataset.log.split(',');
   const data = document.getElementById('data')?.value || isoOggi();
-  if (data > isoOggi()) return toast('La data non può essere nel futuro');
+  if (data > isoOggi()) return toast('Non si annaffia nel futuro 😉');
   document.querySelectorAll('[data-log]').forEach((b) => (b.disabled = true));
   try {
     const id = await db.registraEvento(piantaId, data, azioni);
@@ -305,10 +315,10 @@ async function registra(btn) {
     });
     render();
     const msg = azioni.includes('concime')
-      ? 'Concimata e annaffiata ✓'
+      ? 'Acqua e pappa! 🌱'
       : azioni.includes('rinvaso')
-        ? 'Rinvaso registrato ✓'
-        : 'Annaffiata ✓';
+        ? 'Casa nuova! 🪴'
+        : 'Glu glu 💧';
     toast(msg, { label: 'Annulla', fn: () => elimina(id, true) });
   } catch (e) {
     errore(e);
@@ -317,12 +327,12 @@ async function registra(btn) {
 }
 
 async function elimina(id, silenzioso = false) {
-  if (!silenzioso && !confirm('Eliminare questa registrazione?')) return;
+  if (!silenzioso && !confirm('Tolgo questa voce dal diario?')) return;
   try {
     await db.eliminaEvento(id);
     state.eventi = state.eventi.filter((e) => e.id !== id);
     render();
-    if (silenzioso) toast('Annullato');
+    if (silenzioso) toast('Come non detto 👌');
   } catch (e) {
     errore(e);
   }
@@ -334,18 +344,18 @@ function apriMenu(id) {
     <form method="dialog" class="sheet">
       <div class="gruppo">
         <p class="sheet-titolo">${esc(p.nome)}</p>
-        <button value="rinomina">✏️ Rinomina</button>
-        <button value="icona">🖼️ Cambia icona</button>
-        <button value="archivia">${p.archiviata ? '♻️ Ripristina' : '📦 Archivia'}</button>
+        <button value="rinomina">✏️ Cambia nome</button>
+        <button value="icona">🖼️ Cambia immagine</button>
+        <button value="archivia">${p.archiviata ? '🌿 Riportala tra le piante' : '📦 Mettila da parte'}</button>
       </div>
-      <button value="" class="annulla">Annulla</button>
+      <button value="" class="annulla">Lascia stare</button>
     </form>`;
   $dialog.onclose = async () => {
     const scelta = $dialog.returnValue;
     $dialog.returnValue = '';
     try {
       if (scelta === 'rinomina') {
-        const nome = prompt('Nuovo nome', p.nome)?.trim();
+        const nome = prompt('Come la chiamiamo?', p.nome)?.trim();
         if (nome && nome !== p.nome) {
           await db.aggiornaPianta(p.id, { nome });
           p.nome = nome;
@@ -356,7 +366,7 @@ function apriMenu(id) {
       } else if (scelta === 'archivia') {
         await db.aggiornaPianta(p.id, { archiviata: !p.archiviata });
         p.archiviata = !p.archiviata;
-        toast(p.archiviata ? 'Pianta archiviata' : 'Pianta ripristinata');
+        toast(p.archiviata ? 'Messa da parte 📦' : 'Bentornata! 🌿');
       }
       render();
     } catch (e) {
@@ -411,7 +421,7 @@ $app.addEventListener('click', async (ev) => {
       return render();
     case 'esci':
     case 'esci-subito':
-      if (t.dataset.azione === 'esci' && !confirm(DEMO ? 'Ripristinare i dati demo?' : 'Uscire?')) return;
+      if (t.dataset.azione === 'esci' && !confirm(DEMO ? 'Ripristinare i dati demo?' : 'Vuoi uscire? Le piante restano qui 🌿')) return;
       await db.esci();
       state.errore = null;
       state.user = DEMO ? await db.getUser() : null;
@@ -431,7 +441,7 @@ $app.addEventListener('submit', async (ev) => {
       try {
         state.user = await db.accedi(state.login.email, f.password.value);
       } catch (e) {
-        toast(/invalid/i.test(e?.message) ? 'Email o password errate' : 'Errore: ' + (e?.message || e));
+        toast(/invalid/i.test(e?.message) ? 'Ops, email o password non tornano' : 'Ops: ' + (e?.message || e));
         return;
       }
       try {
@@ -456,8 +466,18 @@ $app.addEventListener('submit', async (ev) => {
   }
 });
 
+// remember whether the diary is open, so it stays open after logging something
+$app.addEventListener(
+  'toggle',
+  (ev) => {
+    if (ev.target.classList?.contains('diario')) state.storicoAperto = ev.target.open;
+  },
+  true // 'toggle' doesn't bubble
+);
+
 window.addEventListener('hashchange', () => {
   state.storicoCompleto = false;
+  state.storicoAperto = false;
   render();
   window.scrollTo(0, 0);
 });

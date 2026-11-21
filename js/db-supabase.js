@@ -39,7 +39,7 @@ export function createSupabaseDb(url, anonKey) {
     async caricaTutto() {
       // the project's logins are shared: check the email is on the list
       if (!ok(await sb.rpc('autorizzato'))) {
-        throw new Error('Questa email non è autorizzata a usare l\'app.');
+        throw new Error('Questa email non è nella lista delle piante di casa.');
       }
       const [piante, tipi] = await Promise.all([
         sb.from('piante').select('id,nome,icona,archiviata').order('nome').then(ok),
